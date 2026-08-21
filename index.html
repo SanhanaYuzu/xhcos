@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>XHCOS 1.0.0 (Calico) — 三花工坊出品的开源 Linux 发行版</title>
+<meta name="description" content="XHCOS 是基于 Debian 12 的个人品牌 Linux 发行版，配备 XFCE 桌面、Plymouth 暗色启动动画、Calamus 图形化安装器，支持 UEFI / 传统 BIOS 与 Secure Boot，开箱即用中文环境，并集成 XHC 生态。" />
+<style>
+  :root{
+    --bg:#0B1E3B; --bg2:#11315C; --bg3:#0E2748;
+    --ink:#FFF6EC; --muted:#A9BBD6;
+    --orange:#F2A65A; --yuzu:#FFD54A; --green:#7FB069; --night:#1A1A1C;
+    --card:rgba(255,255,255,.05); --line:rgba(255,255,255,.12);
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.65;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  a{color:var(--orange); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+
+  /* ===== 背景弧光 ===== */
+  .glow{position:fixed; inset:0; z-index:-2; overflow:hidden; background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(242,166,90,.18), transparent 60%),
+    radial-gradient(900px 600px at -10% 20%, rgba(127,176,105,.12), transparent 55%),
+    linear-gradient(160deg,var(--bg) 0%, var(--bg3) 55%, #081327 100%);}
+  .glow::after{content:""; position:absolute; right:-180px; top:-120px; width:620px; height:620px;
+    border-radius:50%; background:conic-gradient(from 200deg, transparent, rgba(242,166,90,.10), transparent 40%);
+    filter:blur(20px); animation:spin 28s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ===== 导航 ===== */
+  header{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+    background:rgba(8,20,40,.62); border-bottom:1px solid var(--line)}
+  .nav{display:flex; align-items:center; gap:14px; height:62px}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px}
+  .brand svg{width:34px; height:34px; border-radius:9px; box-shadow:0 4px 18px rgba(242,166,90,.35)}
+  .brand b{font-size:18px}
+  .nav nav{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  .nav nav a{padding:8px 13px; border-radius:9px; color:var(--muted); font-size:14px}
+  .nav nav a:hover{color:var(--ink); background:var(--card); text-decoration:none}
+
+  /* ===== Hero ===== */
+  .hero{padding:84px 0 70px; text-align:center; position:relative}
+  .badge{display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border:1px solid var(--line);
+    border-radius:999px; font-size:13px; color:var(--muted); background:var(--card)}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+  .hero h1{margin:22px 0 10px; font-size:clamp(40px,8vw,78px); line-height:1.02; font-weight:850; letter-spacing:1px}
+  .hero h1 .grad{background:linear-gradient(100deg,var(--orange),var(--yuzu)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero p.sub{font-size:clamp(16px,2.4vw,20px); color:var(--muted); max-width:680px; margin:14px auto 0}
+  .cta{display:flex; gap:14px; justify-content:center; margin-top:32px; flex-wrap:wrap}
+  .btn{padding:13px 26px; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; border:1px solid transparent; transition:.18s}
+  .btn.primary{background:linear-gradient(100deg,var(--orange),#E89046); color:#1a1206; box-shadow:0 10px 30px rgba(242,166,90,.35)}
+  .btn.primary:hover{transform:translateY(-2px); text-decoration:none}
+  .btn.ghost{background:var(--card); color:var(--ink); border-color:var(--line)}
+  .btn.ghost:hover{background:rgba(255,255,255,.1); text-decoration:none}
+  .arc-deco{position:absolute; left:50%; top:8px; transform:translateX(-50%); width:min(560px,90vw); opacity:.5; z-index:-1; pointer-events:none}
+
+  /* ===== 区块 ===== */
+  section{padding:64px 0}
+  .sec-head{text-align:center; margin-bottom:42px}
+  .sec-head .kicker{color:var(--orange); font-weight:700; letter-spacing:2px; font-size:13px; text-transform:uppercase}
+  .sec-head h2{font-size:clamp(26px,4vw,38px); margin-top:8px; font-weight:800}
+  .sec-head p{color:var(--muted); margin-top:10px; max-width:620px; margin-left:auto; margin-right:auto}
+
+  /* ===== 特性网格 ===== */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:18px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; transition:.2s}
+  .card:hover{transform:translateY(-4px); border-color:rgba(242,166,90,.5); box-shadow:0 14px 40px rgba(0,0,0,.35)}
+  .card .ico{width:46px; height:46px; border-radius:12px; display:grid; place-items:center; font-size:24px;
+    background:linear-gradient(140deg,rgba(242,166,90,.22),rgba(255,213,74,.12)); margin-bottom:14px}
+  .card h3{font-size:18px; margin-bottom:7px}
+  .card p{color:var(--muted); font-size:14.5px}
+
+  /* ===== 规格表 ===== */
+  .spec{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line); border-radius:16px; overflow:hidden}
+  .spec div{display:flex; justify-content:space-between; gap:16px; padding:15px 20px; border-bottom:1px solid var(--line); background:var(--card)}
+  .spec div:nth-child(odd){border-right:1px solid var(--line)}
+  .spec .k{color:var(--muted); font-size:14.5px}
+  .spec .v{font-weight:700; text-align:right}
+  .spec .v .tag{display:inline-block; padding:2px 9px; border-radius:7px; font-size:12.5px; background:rgba(242,166,90,.16); color:var(--orange); margin-left:4px}
+
+  /* ===== 步骤 ===== */
+  .steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; counter-reset:s}
+  .step{position:relative; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px 20px 20px}
+  .step::before{counter-increment:s; content:"0" counter(s); position:absolute; top:-14px; left:20px;
+    font-size:15px; font-weight:800; color:#1a1206; background:linear-gradient(100deg,var(--orange),var(--yuzu));
+    padding:5px 11px; border-radius:9px}
+  .step h3{margin:6px 0 8px; font-size:17px}
+  .step p{color:var(--muted); font-size:14px}
+
+  /* ===== 品牌 ===== */
+  .brandblock{display:grid; grid-template-columns:1.1fr .9fr; gap:26px; align-items:center;
+    background:linear-gradient(140deg,rgba(242,166,90,.08),rgba(127,176,105,.05)); border:1px solid var(--line); border-radius:20px; padding:30px}
+  .brandblock h3{font-size:22px; margin-bottom:10px}
+  .brandblock p{color:var(--muted); font-size:15px; margin-bottom:12px}
+  .pill{display:inline-block; padding:5px 12px; border-radius:999px; border:1px solid var(--line); font-size:13px; color:var(--ink); margin:4px 6px 0 0}
+  .logos{display:flex; gap:14px; justify-content:center; flex-wrap:wrap}
+  .logo-card{background:var(--night); border:1px solid var(--line); border-radius:14px; padding:14px; text-align:center}
+  .logo-card img{height:74px; display:block; margin:0 auto}
+  .logo-card span{display:block; margin-top:8px; font-size:12px; color:var(--muted)}
+  .logo-card.light{background:#fff; border-color:#fff}
+  .logo-card.light span{color:#3a3a3a}
+
+  /* ===== 代码块 ===== */
+  pre{background:#061427; border:1px solid var(--line); border-radius:12px; padding:18px 20px; overflow:auto; font-size:13.5px; color:#cfe3ff}
+  pre code{font-family:"SFMono-Regular",Consolas,monospace}
+
+  /* ===== 页脚 ===== */
+  footer{border-top:1px solid var(--line); padding:40px 0 56px; color:var(--muted); font-size:14px; text-align:center}
+  footer .links{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin:12px 0}
+  footer .links a{color:var(--muted)} footer .links a:hover{color:var(--orange)}
+  .build{margin-top:14px; font-size:12.5px; opacity:.8}
+
+  @media(max-width:720px){
+    .spec{grid-template-columns:1fr}
+    .spec div:nth-child(odd){border-right:none}
+    .brandblock{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <svg viewBox="0 0 120 120" aria-label="XHCOS logo">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1E3B"/><stop offset="1" stop-color="#14315C"/></linearGradient>
+          <linearGradient id="arc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2A65A"/><stop offset="1" stop-color="#FFD54A"/></linearGradient>
+        </defs>
+        <rect width="120" height="120" rx="26" fill="url(#bg)"/>
+        <path d="M18 96 A46 46 0 0 1 102 28" fill="none" stroke="url(#arc)" stroke-width="9" stroke-linecap="round"/>
+        <text x="60" y="70" text-anchor="middle" font-size="36" font-weight="800" fill="#FFF6EC" font-family="system-ui,sans-serif">XHC</text>
+      </svg>
+      <b>XHCOS</b>
+    </div>
+    <nav>
+      <a href="#features">特性</a>
+      <a href="#spec">规格</a>
+      <a href="#get">获取</a>
+      <a href="#brand">品牌</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <svg class="arc-deco" viewBox="0 0 560 320" aria-hidden="true">
+      <defs><linearGradient id="a2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2A65A"/><stop offset="1" stop-color="#7FB069"/></linearGradient></defs>
+      <path d="M40 300 A260 260 0 0 1 520 40" fill="none" stroke="url(#a2)" stroke-width="3" opacity=".5"/>
+      <path d="M120 320 A200 200 0 0 1 460 120" fill="none" stroke="#FFD54A" stroke-width="2" opacity=".35"/>
+    </svg>
+    <div class="wrap">
+      <div class="badge"><span class="dot"></span> 版本 1.0.0 (Calico) · 稳定首发</div>
+      <h1>XHC<span class="grad">OS</span></h1>
+      <p class="sub">由 <b>三花工坊（Sanhana Studio）</b>打造的个人品牌 Linux 发行版 —— 基于 Debian 12 的稳定底座，开箱即用的中文桌面，一张 U 盘即可安装到任意实体机。</p>
+      <div class="cta">
+        <a class="btn primary" href="#get">获取 XHCOS</a>
+        <a class="btn ghost" href="#features">了解特性</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Why XHCOS</div>
+        <h2>为日常与折腾而生</h2>
+        <p>稳定、好看、好用，且带着 XHC 生态的一键直达。</p>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="ico">🐧</div><h3>Debian 12 底座</h3><p>以 Debian 12 (bookworm) 为基，软件丰富、更新稳健，社区资料随手可得。</p></div>
+        <div class="card"><div class="ico">🖥️</div><h3>XFCE 桌面</h3><p>轻量流畅的 XFCE 4 + 暖橙主题，老机新机都顺手，不花哨不卡顿。</p></div>
+        <div class="card"><div class="ico">✨</div><h3>暗色启动动画</h3><p>自绘 Plymouth 暗色主题，开机即见 XHC 弧光与暖橙进度条。</p></div>
+        <div class="card"><div class="ico">⚙️</div><h3>Calamares 安装器</h3><p>图形化安装向导，抹盘 / 手动分区、设账号、一键装好硬盘系统。</p></div>
+        <div class="card"><div class="ico">🔐</div><h3>Secure Boot 支持</h3><p>内置 shim + 签名 GRUB，新版带安全启动的笔记本也能直接引导。</p></div>
+        <div class="card"><div class="ico">💿</div><h3>UEFI + 传统 BIOS</h3><p>混合镜像双启兼容，新主板与老机器同一张盘通吃。</p></div>
+        <div class="card"><div class="ico">📡</div><h3>真实硬件固件</h3><p>启用 non-free-firmware，网卡 / 显卡 / 各类 WiFi 装完即用。</p></div>
+        <div class="card"><div class="ico">🀄</div><h3>中文开箱即用</h3><p>fcitx5 输入法 + Noto 中文字体，首次进入即为中文环境。</p></div>
+        <div class="card"><div class="ico">🔗</div><h3>XHC 生态直达</h3><p>桌面预置 XHC 博客 / 云盘 / 浏览器 / 域名平台的快捷入口。</p></div>
+        <div class="card"><div class="ico">🧪</div><h3>Live 先试后装</h3><p>不写入硬盘也能进完整桌面试用，满意了再点安装。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Spec -->
+  <section id="spec">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Specifications</div>
+        <h2>技术规格</h2>
+      </div>
+      <div class="spec">
+        <div><span class="k">CPU 架构</span><span class="v">x86_64</span></div>
+        <div><span class="k">基础系统</span><span class="v">Debian 12<span class="tag">bookworm</span></span></div>
+        <div><span class="k">桌面环境</span><span class="v">XFCE 4</span></div>
+        <div><span class="k">显示管理器</span><span class="v">LightDM</span></div>
+        <div><span class="k">启动画面</span><span class="v">Plymouth（暗色主题）</span></div>
+        <div><span class="k">安装器</span><span class="v">Calamares</span></div>
+        <div><span class="k">内核</span><span class="v">linux-image-amd64</span></div>
+        <div><span class="k">镜像格式</span><span class="v">iso-hybrid<span class="tag">UEFI+BIOS</span></span></div>
+        <div><span class="k">安全启动</span><span class="v">Secure Boot（shim）</span></div>
+        <div><span class="k">镜像体积</span><span class="v">约 2–3 GB</span></div>
+        <div><span class="k">默认账号</span><span class="v">xhc / xhcos</span></div>
+        <div><span class="k">版本代号</span><span class="v">1.0.0 (Calico)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Get -->
+  <section id="get">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kicker">Get Started</div>
+        <h2>获取与安装</h2>
+        <p>一张 U 盘，几分钟装好。两种方式任选。</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>取得镜像</h3><p>下载官方 ISO，或用仓库里的构建脚本在本机 Debian / WSL2 一键生成。</p></div>
+        <div class="step"><h3>写入 U 盘</h3><p>用 Ventoy、Rufus 拷贝，或 <code>dd</code> 直写。推荐 Ventoy 多 ISO 共存。</p></div>
+        <div class="step"><h3>从 U 盘启动</h3><p>实体机选择 U 盘启动，进入 Live 桌面先试用。</p></div>
+        <div class="step"><h3>图形化安装</h3><p>桌面双击「安装 XHCOS 到硬盘」，跟随 Calamares 向导完成。</p></div>
+        <div class="step"><h3>重启即用</h3><p>拔出 U 盘重启，登录 xhc 账户，开始你的 XHCOS。</p></div>
+      </div>
+
+      <div class="sec-head" style="margin-top:46px">
+        <h2 style="font-size:24px">自己构建 ISO</h2>
+        <p>仓库已附带完整 live-build 工程，在有网络的环境执行：</p>
+      </div>
+      <pre><code># 在 Debian 12 / WSL2-Debian 中（需 root）
+sudo apt-get install -y live-build debootstrap xorriso squashfs-tools
+git clone https://github.com/SanhanaYuzu/xhcos.git
+cd xhcos/iso
+sudo ./build-iso.sh
+# 产物：xhcos-1.0.0-amd64.iso</code></pre>
+      <p style="color:var(--muted); margin-top:14px; font-size:14px">
+        注：官方预构建 ISO 镜像正在打包发布中，发布后将在本页与项目仓库提供下载。当前可先按上方脚本自行构建。
+      </p>
+    </div>
+  </section>
+
+  <!-- Brand -->
+  <section id="brand">
+    <div class="wrap">
+      <div class="brandblock">
+        <div>
+          <h3>关于品牌 · 三花工坊</h3>
+          <p>XHCOS 由独立开发者品牌 <b>Sanhana Studio（三花工坊）</b>打造。品牌虚拟形象是一只三花猫娘「Sanhana」——三花色块、柚子黄点缀、代码与像素彩蛋，气质是日系手作 + 技术宅的独立开发者味道。</p>
+          <p>系统代号 <b>Calico（三花）</b>即来源于此。每一处暖橙与弧光，都是三花工坊的视觉签名。</p>
+          <div>
+            <span class="pill">三花猫 Calico</span>
+            <span class="pill">柚子 Yuzu</span>
+            <span class="pill">代码 / 像素</span>
+            <span class="pill">Sanhana Studio</span>
+            <span class="pill">NT Group</span>
+          </div>
+        </div>
+        <div class="logos">
+          <div class="logo-card"><img src="assets/images/logo-dark.png" alt="XHC logo (dark)"/><span>XHC 弧光标志</span></div>
+          <div class="logo-card light"><img src="assets/images/xhcntgroup-b.png" alt="XHC NT Group"/><span>BUILD BY NT GROUP</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="brand" style="justify-content:center; gap:10px">
+      <svg viewBox="0 0 120 120" style="width:28px;height:28px;border-radius:7px" aria-hidden="true">
+        <rect width="120" height="120" rx="26" fill="#0B1E3B"/>
+        <path d="M18 96 A46 46 0 0 1 102 28" fill="none" stroke="#F2A65A" stroke-width="9" stroke-linecap="round"/>
+        <text x="60" y="70" text-anchor="middle" font-size="36" font-weight="800" fill="#FFF6EC" font-family="system-ui">XHC</text>
+      </svg>
+      <b style="font-size:16px">XHCOS</b>
+    </div>
+    <div class="links">
+      <a href="https://hotpe.org" target="_blank" rel="noopener">XHC 博客</a>
+      <a href="https://agentos-app.net" target="_blank" rel="noopener">XHC 云盘</a>
+      <a href="https://xhcdns.com" target="_blank" rel="noopener">XHC 域名</a>
+      <a href="https://github.com/SanhanaYuzu/xhcos" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="build">XHCOS 1.0.0 (Calico) · BUILD BY NT GROUP · © Sanhana Studio 三花工坊</div>
+  </div>
+</footer>
+</body>
+</html>
